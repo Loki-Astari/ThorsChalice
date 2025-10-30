@@ -9,3 +9,5 @@ ThorSerialize_ROOT_DIR=@ThorSerialize_ROOT_DIR@
 
 Nisse_ROOT_LIB=@Nisse_ROOT_LIB@
 Nisse_ROOT_DIR=@Nisse_ROOT_DIR@
+
+MagicEnumHeaderOnly_ROOT_DIR=@MagicEnumHeaderOnly_ROOT_DIR@

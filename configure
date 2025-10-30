@@ -625,7 +625,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_header_c_list=
+ac_header_cxx_list=
 ac_subst_vars='am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
@@ -711,6 +711,9 @@ build
 LIBTOOL
 Nisse_ROOT_LIB
 Nisse_ROOT_DIR
+MAGIC_ENUM_FILE
+HAVE_MagicEnumHeaderOnly
+MagicEnumHeaderOnly_ROOT_DIR
 ThorSerialize_ROOT_LIB
 ThorSerialize_ROOT_DIR
 UNZIP
@@ -799,6 +802,7 @@ enable_colour
 enable_dark_mode
 with_standard_version
 with_thorserialize_root
+with_magicenum_header_only_root
 with_nisse_root
 enable_shared
 enable_static
@@ -1490,6 +1494,10 @@ Optional Packages:
                           Define the root directory of package Thors
                           Serializer
 
+  --with-magicenum-header-only-root=<location>
+                          Directory of MagicEnumHeaderOnly include folder: the
+                          folder that has the include file
+
   --with-nisse-root=<location>
                           Define the root directory of package Nisse
 
@@ -1679,6 +1687,41 @@ fi
   as_fn_set_status $ac_retval
 
 } # ac_fn_cxx_try_link
+
+# ac_fn_cxx_check_header_compile LINENO HEADER VAR INCLUDES
+# ---------------------------------------------------------
+# Tests whether HEADER exists and can be compiled using the include files in
+# INCLUDES, setting the cache variable VAR accordingly.
+ac_fn_cxx_check_header_compile ()
+{
+  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $2" >&5
+printf %s "checking for $2... " >&6; }
+if eval test \${$3+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e) cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+$4
+#include <$2>
+_ACEOF
+if ac_fn_cxx_try_compile "$LINENO"
+then :
+  eval "$3=yes"
+else case e in #(
+  e) eval "$3=no" ;;
+esac
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext ;;
+esac
+fi
+eval ac_res=\$$3
+	       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+printf "%s\n" "$ac_res" >&6; }
+  eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
+
+} # ac_fn_cxx_check_header_compile
 
 # ac_fn_c_try_compile LINENO
 # --------------------------
@@ -2416,6 +2459,15 @@ main (int argc, char **argv)
 }
 "
 
+as_fn_append ac_header_cxx_list " stdio.h stdio_h HAVE_STDIO_H"
+as_fn_append ac_header_cxx_list " stdlib.h stdlib_h HAVE_STDLIB_H"
+as_fn_append ac_header_cxx_list " string.h string_h HAVE_STRING_H"
+as_fn_append ac_header_cxx_list " inttypes.h inttypes_h HAVE_INTTYPES_H"
+as_fn_append ac_header_cxx_list " stdint.h stdint_h HAVE_STDINT_H"
+as_fn_append ac_header_cxx_list " strings.h strings_h HAVE_STRINGS_H"
+as_fn_append ac_header_cxx_list " sys/stat.h sys_stat_h HAVE_SYS_STAT_H"
+as_fn_append ac_header_cxx_list " sys/types.h sys_types_h HAVE_SYS_TYPES_H"
+as_fn_append ac_header_cxx_list " unistd.h unistd_h HAVE_UNISTD_H"
 # Test code for whether the C compiler supports C89 (global declarations)
 ac_c_conftest_c89_globals='
 /* Does the compiler advertise C89 conformance?
@@ -2741,15 +2793,6 @@ main (int argc, char **argv)
 }
 "
 
-as_fn_append ac_header_c_list " stdio.h stdio_h HAVE_STDIO_H"
-as_fn_append ac_header_c_list " stdlib.h stdlib_h HAVE_STDLIB_H"
-as_fn_append ac_header_c_list " string.h string_h HAVE_STRING_H"
-as_fn_append ac_header_c_list " inttypes.h inttypes_h HAVE_INTTYPES_H"
-as_fn_append ac_header_c_list " stdint.h stdint_h HAVE_STDINT_H"
-as_fn_append ac_header_c_list " strings.h strings_h HAVE_STRINGS_H"
-as_fn_append ac_header_c_list " sys/stat.h sys_stat_h HAVE_SYS_STAT_H"
-as_fn_append ac_header_c_list " sys/types.h sys_types_h HAVE_SYS_TYPES_H"
-as_fn_append ac_header_c_list " unistd.h unistd_h HAVE_UNISTD_H"
 
 # Auxiliary files required by this configure script.
 ac_aux_files="missing install-sh compile config.guess config.sub ltmain.sh"
@@ -4924,6 +4967,244 @@ fi
 
 
 fi
+
+
+ac_header= ac_cache=
+for ac_item in $ac_header_cxx_list
+do
+  if test $ac_cache; then
+    ac_fn_cxx_check_header_compile "$LINENO" $ac_header ac_cv_header_$ac_cache "$ac_includes_default"
+    if eval test \"x\$ac_cv_header_$ac_cache\" = xyes; then
+      printf "%s\n" "#define $ac_item 1" >> confdefs.h
+    fi
+    ac_header= ac_cache=
+  elif test $ac_header; then
+    ac_cache=$ac_item
+  else
+    ac_header=$ac_item
+  fi
+done
+
+
+
+
+
+
+
+
+if test $ac_cv_header_stdlib_h = yes && test $ac_cv_header_string_h = yes
+then :
+
+printf "%s\n" "#define STDC_HEADERS 1" >>confdefs.h
+
+fi
+
+
+
+
+
+# Check whether --with-magicenum-header-only-root was given.
+if test ${with_magicenum_header_only_root+y}
+then :
+  withval=$with_magicenum_header_only_root;
+fi
+
+
+    INCLUDE_DIR="-I${with_magicenum_header_only_root}"
+    if test "x${with_magicenum_header_only_root}" == "x"
+then :
+  INCLUDE_DIR="-I${DefaultLinkDir}/include"
+
+fi
+
+    ORIG_CXXFLAGS="${CXXFLAGS}"
+    CXXFLAGS="${CXXFLAGS} ${CXX_STD_FLAG} ${INCLUDE_DIR}"
+
+    ac_fn_cxx_check_header_compile "$LINENO" "magic_enum.hpp" "ac_cv_header_magic_enum_hpp" "$ac_includes_default"
+if test "x$ac_cv_header_magic_enum_hpp" = xyes
+then :
+
+
+printf "%s\n" "#define HAVE_MagicEnumHeaderOnly 1" >>confdefs.h
+
+            magicenum_header_only_found=1
+            if test "x${with_magicenum_header_only_root}" != "x"
+then :
+
+                    magicenum_header_only_defined=1
+                    MagicEnumHeaderOnly_ROOT_DIR=${with_magicenum_header_only_root}
+
+                    subconfigure="${subconfigure} --with-magicenum-header-only-root=${with_magicenum_header_only_root}"
+
+
+fi
+
+else case e in #(
+  e)
+            if test "0" == "1"
+then :
+  as_fn_error $? "
+    " "$LINENO" 5
+
+fi
+
+     ;;
+esac
+fi
+
+
+    CXXFLAGS="${ORIG_CXXFLAGS}"
+
+
+    if test "x${magicenum_header_only_found}" != "x"
+then :
+
+            HAVE_MagicEnumHeaderOnly=1
+
+            MAGIC_ENUM_FILE=magic_enum.hpp
+
+
+printf "%s\n" "#define HAVE_MagicEnumHeaderOnlyV1 1" >>confdefs.h
+
+
+else case e in #(
+  e)
+
+
+
+
+# Check whether --with-magicenum-header-only-root was given.
+if test ${with_magicenum_header_only_root+y}
+then :
+  withval=$with_magicenum_header_only_root;
+fi
+
+
+    INCLUDE_DIR="-I${with_magicenum_header_only_root}"
+    if test "x${with_magicenum_header_only_root}" == "x"
+then :
+  INCLUDE_DIR="-I${DefaultLinkDir}/include"
+
+fi
+
+    ORIG_CXXFLAGS="${CXXFLAGS}"
+    CXXFLAGS="${CXXFLAGS} ${CXX_STD_FLAG} ${INCLUDE_DIR}"
+
+    ac_fn_cxx_check_header_compile "$LINENO" "magic_enum/magic_enum.hpp" "ac_cv_header_magic_enum_magic_enum_hpp" "$ac_includes_default"
+if test "x$ac_cv_header_magic_enum_magic_enum_hpp" = xyes
+then :
+
+
+printf "%s\n" "#define HAVE_MagicEnumHeaderOnly 1" >>confdefs.h
+
+            magicenum_header_only_found=1
+            if test "x${with_magicenum_header_only_root}" != "x"
+then :
+
+                    magicenum_header_only_defined=1
+                    MagicEnumHeaderOnly_ROOT_DIR=${with_magicenum_header_only_root}
+
+                    subconfigure="${subconfigure} --with-magicenum-header-only-root=${with_magicenum_header_only_root}"
+
+
+fi
+
+else case e in #(
+  e)
+            if test "1" == "1"
+then :
+  as_fn_error $? "
+Could not find the header file <magic-enum.hpp>.
+You can install this with
+
+    brew install magic_enum
+
+Alternately if you have manually installed magic_enum you can specify its location with
+    --with-magicenum-header-only-root=<location of magic_enum installation>/include
+
+            " "$LINENO" 5
+
+fi
+
+     ;;
+esac
+fi
+
+
+    CXXFLAGS="${ORIG_CXXFLAGS}"
+
+
+
+            if test "x${magicenum_header_only_found}" != "x"
+then :
+
+                    HAVE_MagicEnumHeaderOnly=1
+
+                    MAGIC_ENUM_FILE=magic_enum/magic_enum.hpp
+
+
+printf "%s\n" "#define HAVE_MagicEnumHeaderOnlyV2 1" >>confdefs.h
+
+
+fi
+
+     ;;
+esac
+fi
+
+
+    if [ "x13" == "x12" ] || [ "x13" == "x10" ]; then
+
+        grep -q 'MagicEnum_ROOT_DIR=@MagicEnum_ROOT_DIR@' Makefile.config.in
+        result=$?
+        if test "x${result}" != "x0"
+then :
+
+                as_fn_error $? "
+                    Expecting MagicEnum_ROOT_DIR to be defined in Makefile.config.in
+                    You should probably add this line to Makefile.config.in
+
+                        MagicEnum_ROOT_DIR=@MagicEnum_ROOT_DIR@
+                " "$LINENO" 5
+
+
+fi
+    fi
+
+    if [ "x13" == "x12" ] || [ "x13" == "x11" ]; then
+
+        grep -q 'MagicEnum_ROOT_LIB=@MagicEnum_ROOT_LIB@' Makefile.config.in
+        result=$?
+        if test "x${result}" != "x0"
+then :
+
+                as_fn_error $? "
+                    Expecting MagicEnum_ROOT_LIB to be defined in Makefile.config.in
+                    You should probably add this line to Makefile.config.in
+
+                        MagicEnum_ROOT_LIB=@MagicEnum_ROOT_LIB@
+                " "$LINENO" 5
+
+
+fi
+    fi
+
+    if [ "x13" == "x13" ]; then
+        grep -q 'MagicEnumHeaderOnly_ROOT_DIR=@MagicEnumHeaderOnly_ROOT_DIR@' Makefile.config.in
+        result=$?
+        if test "x${result}" != "x0"
+then :
+
+                as_fn_error $? "
+                    Expecting MagicEnumHeaderOnly_ROOT_DIR to be defined in Makefile.config.in
+                    You should probably add this line to Makefile.config.in
+
+                        MagicEnumHeaderOnly_ROOT_DIR=@MagicEnumHeaderOnly_ROOT_DIR@
+                " "$LINENO" 5
+
+
+fi
+    fi
 
 
 
@@ -9859,35 +10140,6 @@ func_munge_path_list ()
     esac
 }
 
-ac_header= ac_cache=
-for ac_item in $ac_header_c_list
-do
-  if test $ac_cache; then
-    ac_fn_c_check_header_compile "$LINENO" $ac_header ac_cv_header_$ac_cache "$ac_includes_default"
-    if eval test \"x\$ac_cv_header_$ac_cache\" = xyes; then
-      printf "%s\n" "#define $ac_item 1" >> confdefs.h
-    fi
-    ac_header= ac_cache=
-  elif test $ac_header; then
-    ac_cache=$ac_item
-  else
-    ac_header=$ac_item
-  fi
-done
-
-
-
-
-
-
-
-
-if test $ac_cv_header_stdlib_h = yes && test $ac_cv_header_string_h = yes
-then :
-
-printf "%s\n" "#define STDC_HEADERS 1" >>confdefs.h
-
-fi
 ac_fn_c_check_header_compile "$LINENO" "dlfcn.h" "ac_cv_header_dlfcn_h" "$ac_includes_default
 "
 if test "x$ac_cv_header_dlfcn_h" = xyes

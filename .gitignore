@@ -28,4 +28,6 @@ libtool
 stamp-*
 
 config.h
-*Config.h
+ThorsChaliceConfig.h
+MockHeaderInclude.h
+

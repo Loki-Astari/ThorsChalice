@@ -1,56 +1,44 @@
 #ifndef THORSANVIL_THORS_CHALICE_CHALICE_CLA_H
 #define THORSANVIL_THORS_CHALICE_CHALICE_CLA_H
 
-#include <vector>
+#include "ChaliceArgs.h"
+
 #include <string_view>
+#include <vector>
+#include <map>
 #include <filesystem>
 
-#include "ThorSerialize/SerUtil.h"
-#include "ThorSerialize/Traits.h"
+#include "ThorsLogging/ThorsLogging.h"
 
 namespace ThorsAnvil::ThorsChalice
 {
-
-enum class ActionType {File, Lib};
-struct Action
-{
-    std::string         path;
-    ActionType          type;
-    std::string         value;
-};
-struct Config
-{
-    int                 port;
-    std::vector<Action> actions;
-};
-
 
 struct SplitArg
 {
     std::string_view    flag;
     std::string_view    value;
+    bool                hasValue;
 };
+
+using Paths         = std::vector<FSys::path>;
+using VerbosityMap  = std::map<std::string_view, loguru::Verbosity>;
+
 class ChaliceCLA
 {
-    static std::vector<std::filesystem::path>        searchPath;
+    static const Paths          searchPath;
+    static const VerbosityMap   verbosity;
 
-    bool                        help = false;
-    bool                        silent = false;
-    std::filesystem::path       configPath;
-    std::vector<Config>         config;
+    ChaliceCLAInterface&        args;
+    bool                        setConfig = false;
 
     SplitArg    splitArgument(std::string_view arg);
     void        parseArguments(std::vector<std::string_view> const& arguments);
     public:
-        ChaliceCLA(std::vector<std::string_view> const& arguments);
+        ChaliceCLA(std::vector<std::string_view> const& arguments, ChaliceCLAInterface& args);
 
-        bool isHelpNeeded() const {return help;}
         void displayHelp(std::string_view command);
 };
 
 }
-
-ThorsAnvil_MakeTrait(ThorsAnvil::ThorsChalice::Action, path, type, value);
-ThorsAnvil_MakeTrait(ThorsAnvil::ThorsChalice::Config, port, actions);
 
 #endif

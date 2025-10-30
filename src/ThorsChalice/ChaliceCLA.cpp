@@ -1,90 +1,87 @@
 #include "ChaliceCLA.h"
-#include "ThorSerialize/JsonThor.h"
-#include "ThorsLogging/ThorsLogging.h"
-
-#include <fstream>
-
 
 using namespace ThorsAnvil::ThorsChalice;
 
-std::vector<std::filesystem::path>        ChaliceCLA::searchPath = {"./chalice.cfg", "/etc/chalice.cfg", "/opt/homebrew/etc/chalice.cfg"};
+const Paths             ChaliceCLA::searchPath = {"./chalice.cfg", "/etc/chalice.cfg", "/opt/homebrew/etc/chalice.cfg"};
+const VerbosityMap      ChaliceCLA::verbosity  = {
+                                                    {"All",     loguru::Verbosity_9},
+                                                    {"Trace",   loguru::Verbosity_8},
+                                                    {"Debug",   loguru::Verbosity_6},
+                                                    {"Info",    loguru::Verbosity_INFO},
+                                                    {"Warn",    loguru::Verbosity_WARNING},
+                                                    {"Error",   loguru::Verbosity_ERROR},
+                                                 };
 
 SplitArg ChaliceCLA::splitArgument(std::string_view arg)
 {
     std::size_t  find = arg.find('=');
     std::size_t  endF = find == std::string::npos ? arg.size() : find;
     std::size_t  argS = find == std::string::npos ? arg.size() : find + 1;
+    bool         hasValue = find != std::string::npos;
 
     std::string_view        flag(std::begin(arg), std::begin(arg) + endF);
     std::string_view        param(std::begin(arg) + argS, std::end(arg));
 
-    return {flag, param};
+    return {flag, param, hasValue};
 }
 
 void ChaliceCLA::parseArguments(std::vector<std::string_view> const& arguments)
 {
+    bool first = true;
+
     for (std::string_view const& arg: arguments)
     {
-        SplitArg  argVal = splitArgument(arg);
+        if (first) {
+            first = false;
+            continue;
+        }
+        SplitArg  const argVal = splitArgument(arg);
 
         if (argVal.flag == "--help")
         {
-            help = true;
+            args.setHelp();
             continue;
         }
         if (argVal.flag == "--silent")
         {
-            silent = true;
+            args.setSilent();
             continue;
         }
         if (argVal.flag == "--logFile")
         {
-            loguru::add_file(std::string(argVal.value).c_str(), loguru::FileMode::Truncate, loguru::g_stderr_verbosity);
+            args.logAddFile(argVal.value);
             continue;
         }
         if (argVal.flag == "--logSys")
         {
-            loguru::add_syslog(std::string(arguments[0]).c_str(), loguru::g_stderr_verbosity);
+            args.logAddSys(!argVal.hasValue ? arguments[0] : argVal.value);
             continue;
         }
         if (argVal.flag == "--logLevel")
         {
-            // Note: Default log level is loguru::Verbosity_3
-            // See:  ThorsLogging/ThorsLogging.h
-            if (argVal.value == "All") {
-                loguru::g_stderr_verbosity = loguru::Verbosity_9;
+            auto find = verbosity.find(argVal.value);
+            if (find == std::end(verbosity)) {
+                // Invalid Verbosity
+                args.setHelp();
             }
-            else if (argVal.value == "Trace") {
-                loguru::g_stderr_verbosity = loguru::Verbosity_8;
-            }
-            else if (argVal.value == "Debug") {
-                loguru::g_stderr_verbosity = loguru::Verbosity_6;
-            }
-            else if (argVal.value == "Info") {
-                loguru::g_stderr_verbosity = loguru::Verbosity_INFO;    // 0
-            }
-            else if (argVal.value == "Warn") {
-                loguru::g_stderr_verbosity = loguru::Verbosity_WARNING; // -1
-            }
-            else if (argVal.value == "Error") {
-                loguru::g_stderr_verbosity = loguru::Verbosity_ERROR;   // -2
-            }
-            // Note: There is no Fatal. This is always going to log and force application exit.
             else {
-                help = true;
+                // Note: Default log level is loguru::Verbosity_3
+                // See:  ThorsLogging/ThorsLogging.h
+                args.logSetLevel(find->second);
             }
             continue;
         }
         if (argVal.flag == "--config")
         {
-            configPath = argVal.value;
+            args.setConfigFile(argVal.value);
             continue;
         }
 
         // Invalid Flag;
-        help = true;
+        args.setHelp();
     }
 }
+
 void ChaliceCLA::displayHelp(std::string_view command)
 {
     std::cout << "Usage: " << command << " [--help] [--silent] [--logLevel=(All|Trace|Debug|Info|Warn|Error)] [--config=<configFile>]\n"
@@ -115,23 +112,20 @@ The server will refuse to start when there is an error.
 
 }
 
-ChaliceCLA::ChaliceCLA(std::vector<std::string_view> const& arguments)
+ChaliceCLA::ChaliceCLA(std::vector<std::string_view> const& arguments, ChaliceCLAInterface& args)
+    : args(args)
 {
     parseArguments(arguments);
 
-    if (configPath.empty())
+    if (!setConfig)
     {
         for (auto path: searchPath)
         {
             if (std::filesystem::exists(path))
             {
-                configPath = path;
+                args.setConfigFile(path);
                 break;
             }
         }
     }
-
-    using ThorsAnvil::Serialize::jsonImporter;
-    std::ifstream   configStream(configPath);
-    configStream >> jsonImporter(config);
 }

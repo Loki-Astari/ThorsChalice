@@ -1,7 +1,7 @@
 #ifndef THORSANVIL_THORS_CHALICE_CHALICE_SERVER_H
 #define THORSANVIL_THORS_CHALICE_CHALICE_SERVER_H
 
-#include "ChaliceCLA.h"
+#include "ChaliceArgs.h"
 
 namespace ThorsAnvil::ThorsChalice
 {
@@ -9,7 +9,7 @@ namespace ThorsAnvil::ThorsChalice
 class ChaliceServer
 {
     public:
-        ChaliceServer(ChaliceCLA const& arguments);
+        ChaliceServer(ChaliceArgs const& arguments);
         void run();
 };
 

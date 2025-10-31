@@ -21,7 +21,7 @@ struct Action
     std::string         value;
 };
 
-struct Config
+struct ChaliceConfig
 {
     int                 port;
     std::vector<Action> actions;
@@ -30,6 +30,6 @@ struct Config
 }
 
 ThorsAnvil_MakeTrait(ThorsAnvil::ThorsChalice::Action, path, type, value);
-ThorsAnvil_MakeTrait(ThorsAnvil::ThorsChalice::Config, port, actions);
+ThorsAnvil_MakeTrait(ThorsAnvil::ThorsChalice::ChaliceConfig, port, actions);
 
 #endif

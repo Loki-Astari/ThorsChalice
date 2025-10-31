@@ -2,7 +2,7 @@
 
 using namespace ThorsAnvil::ThorsChalice;
 
-ChaliceServer::ChaliceServer(ChaliceArgs const& /*arguments*/)
+ChaliceServer::ChaliceServer(ChaliceConfig const& /*config*/, ChaliceServerMode /*mode*/)
 {
 }
 

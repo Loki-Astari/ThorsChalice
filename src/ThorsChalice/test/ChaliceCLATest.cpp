@@ -1,9 +1,24 @@
 #include "gtest/gtest.h"
-#include <cstddef>
+#include <fstream>
+#include <sstream>
 #include <filesystem>
-#include <string>
 #include "ChaliceCLA.h"
-#include "ThorsLogging/ThorsLogging.h"
+
+struct MockFile
+{
+    std::string name;
+    MockFile(std::string const& name, std::string const& content)
+        : name(name)
+    {
+        std::ofstream   file(name);
+        file << "{}";
+    }
+
+    ~MockFile()
+    {
+        std::filesystem::remove(name);
+    }
+};
 
 struct MockArguments: public ThorsAnvil::ThorsChalice::ChaliceCLAInterface
 {
@@ -184,6 +199,49 @@ TEST(ChaliceCLATest, setLogLevelError)
     ASSERT_EQ(1, mockArgs.classCount);
     ASSERT_EQ(1, mockArgs.methodCallCount[2]);
     ASSERT_EQ(loguru::Verbosity_ERROR, mockArgs.verbosity);
+}
+TEST(ChaliceCLATest, setLogLevelInvalid)
+{
+    MockArguments                           mockArgs;
+    ThorsAnvil::ThorsChalice::ChaliceCLA    cla({"Test", "--logLevel=Fake"}, mockArgs);
+
+    // Call to load
+    ASSERT_EQ(1, mockArgs.classCount);
+    ASSERT_EQ(1, mockArgs.methodCallCount[3]);
+}
+TEST(ChaliceCLATest, displayHelp)
+{
+    MockArguments                           mockArgs;
+    ThorsAnvil::ThorsChalice::ChaliceCLA    cla({"Test", "--logLevel=Error"}, mockArgs);
+
+    std::stringstream                       output;
+    cla.displayHelp("TestingCommand", output);
+
+    EXPECT_FALSE(output.str().empty());
+
+}
+TEST(ChaliceCLATest, findDefaultConfigFile)
+{
+    MockFile                                file("chalice.cfg", "{}");
+
+    MockArguments                           mockArgs;
+    ThorsAnvil::ThorsChalice::ChaliceCLA    cla({"Test"}, mockArgs);
+
+    EXPECT_EQ(mockArgs.config, "./chalice.cfg");
+    ASSERT_EQ(1, mockArgs.classCount);
+    ASSERT_EQ(1, mockArgs.methodCallCount[5]);
+
+}
+TEST(ChaliceCLATest, dontUseDefaultIfUserSpecified)
+{
+    MockFile                                file("chalice.cfg", "{}");
+
+    MockArguments                           mockArgs;
+    ThorsAnvil::ThorsChalice::ChaliceCLA    cla({"Test", "--config=MyConfig"}, mockArgs);
+
+    EXPECT_EQ(mockArgs.config, "MyConfig");
+    ASSERT_EQ(1, mockArgs.classCount);
+    ASSERT_EQ(1, mockArgs.methodCallCount[5]);
 }
 TEST(ChaliceCLATest, allFlags)
 {

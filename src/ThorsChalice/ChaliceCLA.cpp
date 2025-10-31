@@ -73,6 +73,7 @@ void ChaliceCLA::parseArguments(std::vector<std::string_view> const& arguments)
         }
         if (argVal.flag == "--config")
         {
+            setConfig = true;
             args.setConfigFile(argVal.value);
             continue;
         }
@@ -82,10 +83,10 @@ void ChaliceCLA::parseArguments(std::vector<std::string_view> const& arguments)
     }
 }
 
-void ChaliceCLA::displayHelp(std::string_view command)
+void ChaliceCLA::displayHelp(std::string_view command, std::ostream& output)
 {
-    std::cout << "Usage: " << command << " [--help] [--silent] [--logLevel=(All|Trace|Debug|Info|Warn|Error)] [--config=<configFile>]\n"
-              << R"(
+    output << "Usage: " << command << " [--help] [--silent] [--logLevel=(All|Trace|Debug|Info|Warn|Error)] [--config=<configFile>]\n"
+           << R"(
 --help:     prints out the help.
 --silent:   does not spint startup information.
 --logLevel: sets the logging level on all information sent via ThorsLogging.
@@ -96,10 +97,10 @@ void ChaliceCLA::displayHelp(std::string_view command)
 If no config file is explicitly specified then the following files are checked in order to see If they exist:
 )";
     for (auto const& file: searchPath) {
-         std::cout << "\t" << file << "\n";
+         output << "\t" << file << "\n";
     }
 
-    std::cout << R"(
+    output << R"(
 Chalice config is loaded from the config file.
 It is an error when:
     * the config file does not exist

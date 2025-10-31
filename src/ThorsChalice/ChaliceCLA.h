@@ -7,6 +7,7 @@
 #include <vector>
 #include <map>
 #include <filesystem>
+#include <iostream>
 
 #include "ThorsLogging/ThorsLogging.h"
 
@@ -36,7 +37,7 @@ class ChaliceCLA
     public:
         ChaliceCLA(std::vector<std::string_view> const& arguments, ChaliceCLAInterface& args);
 
-        void displayHelp(std::string_view command);
+        void displayHelp(std::string_view command, std::ostream& output = std::cout);
 };
 
 }

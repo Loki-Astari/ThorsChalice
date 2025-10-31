@@ -4,7 +4,6 @@
 #include <string_view>
 #include <filesystem>
 
-#include "ChaliceConfig.h"
 #include "ThorsLogging/ThorsLogging.h"
 
 
@@ -28,7 +27,6 @@ struct ChaliceArgs: public ChaliceCLAInterface
     bool        help    = false;
     bool        silent  = false;
     FSys::path  configPath;
-    Config      config;
 
     virtual void setHelp()                              override;
     virtual void setSilent()                            override;

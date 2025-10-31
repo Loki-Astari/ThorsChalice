@@ -1,15 +1,16 @@
 #ifndef THORSANVIL_THORS_CHALICE_CHALICE_SERVER_H
 #define THORSANVIL_THORS_CHALICE_CHALICE_SERVER_H
 
-#include "ChaliceArgs.h"
+#include "ChaliceConfig.h"
 
 namespace ThorsAnvil::ThorsChalice
 {
 
+enum ChaliceServerMode {Headless, Active};
 class ChaliceServer
 {
     public:
-        ChaliceServer(ChaliceArgs const& arguments);
+        ChaliceServer(ChaliceConfig const& config, ChaliceServerMode mode);
         void run();
 };
 

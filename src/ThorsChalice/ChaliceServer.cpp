@@ -3,6 +3,7 @@
 #include "NisseHTTP/Request.h"
 #include "NisseHTTP/Response.h"
 #include "NisseServer/NisseServer.h"
+#include <string>
 
 using namespace ThorsAnvil::ThorsChalice;
 
@@ -22,7 +23,11 @@ TASock::ServerInit ChaliceServer::getServerInit(std::optional<FS::path> certPath
 
 void ChaliceServer::handleRequest(NisHttp::Request& request, NisHttp::Response& response, FS::path const& contentDir)
 {
-    FS::path        requestPath = FS::path{request.variables()["path"]}.lexically_normal();
+    std::string_view    path = request.getUrl().pathname();
+    while (!path.empty() && path[0] == '/') {
+        path.remove_prefix(1);
+    }
+    FS::path            requestPath = path;
     if (requestPath.empty() || (*requestPath.begin()) == "..") {
         return response.error(400, "Invalid Request Path");
     }

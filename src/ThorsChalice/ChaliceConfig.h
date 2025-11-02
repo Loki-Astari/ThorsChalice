@@ -27,7 +27,7 @@ struct PortConfig
 {
     int                         port;
     std::optional<std::string>  certPath;
-    FS::path                    rootDir;
+    std::string                 rootDir;
     std::vector<Action>         actions;
 };
 
@@ -40,7 +40,7 @@ struct ChaliceConfig
 }
 
 ThorsAnvil_MakeTrait(ThorsAnvil::ThorsChalice::Action, path, type, value);
-ThorsAnvil_MakeTrait(ThorsAnvil::ThorsChalice::PortConfig, port, certPath, actions);
+ThorsAnvil_MakeTrait(ThorsAnvil::ThorsChalice::PortConfig, port, certPath, rootDir, actions);
 ThorsAnvil_MakeTrait(ThorsAnvil::ThorsChalice::ChaliceConfig, servers, controlPort);
 
 #endif

@@ -40,7 +40,8 @@ struct PortConfig
 
 struct ChaliceConfig
 {
-    int                         controlPort = 8079;
+    int                         controlPort         = 8079;
+    int                         libraryCheckTime    = 0;
     std::vector<PortConfig>     servers;
 };
 
@@ -48,6 +49,6 @@ struct ChaliceConfig
 
 ThorsAnvil_MakeTrait(ThorsAnvil::ThorsChalice::Action, type, rootDir, path);
 ThorsAnvil_MakeTrait(ThorsAnvil::ThorsChalice::PortConfig, port, certPath, actions);
-ThorsAnvil_MakeTrait(ThorsAnvil::ThorsChalice::ChaliceConfig, servers, controlPort);
+ThorsAnvil_MakeTrait(ThorsAnvil::ThorsChalice::ChaliceConfig, servers, controlPort, libraryCheckTime);
 
 #endif

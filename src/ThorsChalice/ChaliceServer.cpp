@@ -3,6 +3,7 @@
 #include "NisseHTTP/Request.h"
 #include "NisseHTTP/Response.h"
 #include "NisseServer/NisseServer.h"
+#include <ratio>
 #include <string>
 
 using namespace ThorsAnvil::ThorsChalice;
@@ -23,15 +24,18 @@ TASock::ServerInit ChaliceServer::getServerInit(std::optional<FS::path> certPath
 
 void ChaliceServer::handleRequestLib(NisHttp::Request& request, NisHttp::Response& response, std::size_t libIndex)
 {
+    ThorsLogTrace("ChaliceServer", "handleRequestLib", "Send request to shared lib");
     // Make the loaded library handle the request.
     libraries.call(libIndex, request, response);
 }
 
 void ChaliceServer::handleRequestPath(NisHttp::Request& request, NisHttp::Response& response, FS::path const& contentDir)
 {
+    ThorsLogTrace("ChaliceServer", "handleRequestLib", "Handle file extract");
     // Get the path from the HTTP request object.
     // Remove the leading slash if it exists.
     std::string_view    path = request.getUrl().pathname();
+    ThorsLogTrace("ChaliceServer", "handleRequestPath", "Input Path:   ", path);
     while (!path.empty() && path[0] == '/') {
         path.remove_prefix(1);
     }
@@ -39,7 +43,10 @@ void ChaliceServer::handleRequestPath(NisHttp::Request& request, NisHttp::Respon
     // Check that the path is valid
     // i.e. Some basic checks that the user is not trying to break into the filesystem.
     FS::path            requestPath = FS::path(path).lexically_normal();
+    ThorsLogTrace("ChaliceServer", "handleRequestPath", "Request Path: ", requestPath.string());
+    std::cerr << "RP:   >" << requestPath.string() << "<\n";
     if (requestPath.empty() || (*requestPath.begin()) == "..") {
+        ThorsLogTrace("ChaliceServer", "handleRequestPath", "400 Invalid Path");
         response.error(400, "Invalid Request Path");
         return;
     }
@@ -48,10 +55,12 @@ void ChaliceServer::handleRequestPath(NisHttp::Request& request, NisHttp::Respon
     // Note if the user picked a directory we look for index.html
     std::error_code ec;
     FS::path        filePath = FS::canonical(FS::path{contentDir} /= requestPath, ec);
+    ThorsLogTrace("ChaliceServer", "handleRequestPath", "File Path:    ", filePath.string());
     if (!ec && FS::is_directory(filePath)) {
         filePath = FS::canonical(filePath /= "index.html", ec);
     }
     if (ec || !FS::is_regular_file(filePath)) {
+        ThorsLogTrace("ChaliceServer", "handleRequestPath", "404 No File Found");
         response.error(404, "No File Found At Path");
         return;
     }
@@ -71,19 +80,20 @@ ChaliceServer::ChaliceServer(ChaliceConfig const& config, ChaliceServerMode /*mo
     , control(*this)
     , libraryChecker(*this)
 {
-    //std::cerr << "Server Create\n";
+    ThorsLogTrace("ChaliceServer", "ChaliceServer", "Create Server");
     servers.reserve(config.servers.size());
-    //std::cerr << "    Init: " << servers.size() << "\n";
 
     for (auto const& server: config.servers) {
-        //std::cerr << "    Server: " << server.port << "\n";
+        ThorsLogTrace("ChaliceServer", "ChaliceServer", "Adding Server: ", server.port);
         servers.emplace_back();
         for (auto const& action: server.actions) {
-            //std::cerr << "        Path: " << action.path << "\n";
+            ThorsLogTrace("ChaliceServer", "ChaliceServer", "  Adding Action: ", action.path);
             switch (action.type)
             {
                 case ActionType::File:
                 {
+                    std::cerr << "Adding Listener: FILE: >" << action.path << "<\n";
+                    ThorsLogTrace("ChaliceServer", "ChaliceServer", "    File Listener: ");
                     servers.back().addPath(NisHttp::Method::GET,
                                            action.path,
                                            [&, rootDir = action.rootDir](NisHttp::Request& request, NisHttp::Response& response)
@@ -93,6 +103,7 @@ ChaliceServer::ChaliceServer(ChaliceConfig const& config, ChaliceServerMode /*mo
                 }
                 case ActionType::Lib:
                 {
+                    ThorsLogTrace("ChaliceServer", "ChaliceServer", "    Lib  Listener: ");
                     std::size_t libIndex = libraries.load(action.rootDir);
                     servers.back().addPath(NisHttp::Method::GET,
                                            action.path,
@@ -105,10 +116,14 @@ ChaliceServer::ChaliceServer(ChaliceConfig const& config, ChaliceServerMode /*mo
         }
         listen(getServerInit(server.certPath, server.port), servers.back());
     }
-    //std::cerr << "    Control\n";
+    ThorsLogTrace("ChaliceServer", "ChaliceServer", "  Adding Control Port: ", config.controlPort);
     listen(TASock::ServerInfo{config.controlPort}, control);
     using namespace std::chrono_literals;
-    addTimer(1s, libraryChecker);
+    std::chrono::milliseconds   libraryCheckTime(config.libraryCheckTime);
+    if (config.libraryCheckTime == 0) {
+        libraryCheckTime = 1s;
+    }
+    addTimer(libraryCheckTime, libraryChecker);
 }
 
 void ChaliceServer::checkLibrary()

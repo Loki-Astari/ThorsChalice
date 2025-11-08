@@ -1,5 +1,7 @@
 #include "ChaliceCLA.h"
 
+#include <charconv>
+
 using namespace ThorsAnvil::ThorsChalice;
 
 const Paths             ChaliceCLA::searchPath = {"./chalice.cfg", "/etc/chalice.cfg", "/opt/homebrew/etc/chalice.cfg"};
@@ -31,38 +33,51 @@ void ChaliceCLA::parseArguments(std::vector<std::string_view> const& arguments)
 
     for (std::string_view const& arg: arguments)
     {
+        ThorsLogTrace("ChaliceCLA", "parseArguments", "Check arguments ", args);
         if (first) {
             first = false;
             continue;
         }
         SplitArg  const argVal = splitArgument(arg);
+        ThorsLogTrace("ChaliceCLA", "parseArguments", "Flag:  ", argVal.flag);
+        ThorsLogTrace("ChaliceCLA", "parseArguments", "Value: ", argVal.value);
 
         if (argVal.flag == "--help")
         {
+            ThorsLogTrace("ChaliceCLA", "parseArguments", "Activate Help");
             args.setHelp();
             continue;
         }
         if (argVal.flag == "--silent")
         {
+            ThorsLogTrace("ChaliceCLA", "parseArguments", "Activate Silent");
             args.setSilent();
             continue;
         }
         if (argVal.flag == "--logFile")
         {
+            ThorsLogTrace("ChaliceCLA", "parseArguments", "Activate LogFile");
             args.logAddFile(argVal.value);
             continue;
         }
         if (argVal.flag == "--logSys")
         {
+            ThorsLogTrace("ChaliceCLA", "parseArguments", "Activate LogSys");
             args.logAddSys(!argVal.hasValue ? arguments[0] : argVal.value);
             continue;
         }
         if (argVal.flag == "--logLevel")
         {
+            ThorsLogTrace("ChaliceCLA", "parseArguments", "Activate LogLevel");
             auto find = verbosity.find(argVal.value);
             if (find == std::end(verbosity)) {
-                // Invalid Verbosity
-                args.setHelp();
+                int value = 0;
+                auto result = std::from_chars(argVal.value.data(), argVal.value.data() + argVal.value.size(), value);
+                if (result.ec == std::errc::invalid_argument) {
+                    args.setHelp();
+                    continue;
+                }
+                args.logSetLevel(value);
             }
             else {
                 // Note: Default log level is loguru::Verbosity_3
@@ -73,12 +88,14 @@ void ChaliceCLA::parseArguments(std::vector<std::string_view> const& arguments)
         }
         if (argVal.flag == "--config")
         {
+            ThorsLogTrace("ChaliceCLA", "parseArguments", "Activate Config");
             setConfig = true;
             args.setConfigFile(argVal.value);
             continue;
         }
 
         // Invalid Flag;
+        ThorsLogTrace("ChaliceCLA", "parseArguments", "Invalid Flag");
         args.setHelp();
     }
 }

@@ -22,7 +22,7 @@ int main(int argc, char* argv[])
     try
     {
         ChaliceArgs     arguments;
-        ChaliceCLA      parser(std::vector<std::string_view>(argv + 1, argv + argc), arguments);
+        ChaliceCLA      parser(std::vector<std::string_view>(argv, argv + argc), arguments);
 
         if (arguments.help) { /// TODO
             parser.displayHelp(argv[0]);
@@ -30,9 +30,11 @@ int main(int argc, char* argv[])
         }
 
         if (arguments.configPath.empty()) {
+            parser.displayHelp(argv[0]);
             ThorsLogAndThrowError(std::runtime_error, "ThorsChalice", "main", "No config file set. Not explicitly set and default ones don't exist");
         }
         if (!FS::exists(arguments.configPath)) {
+            parser.displayHelp(argv[0]);
             ThorsLogAndThrowError(std::runtime_error, "ThorsChalice", "main", "Specified config file does not exist. Config File: ", arguments.configPath);
         }
 
@@ -42,11 +44,13 @@ int main(int argc, char* argv[])
         std::ifstream   configStream(arguments.configPath);
         ChaliceConfig   config;
 
-        if (!(configStream >> jsonImporter(config, ParserConfig{ParseType::Exact}))) {
+        if (!(configStream >> jsonImporter(config, ParserConfig{}))) {
+            parser.displayHelp(argv[0]);
             ThorsLogAndThrowError(std::runtime_error, "ThorsChalice", "main", "Failed to load config file: ", arguments.configPath);
         }
 
         if (config.servers.empty()) {
+            parser.displayHelp(argv[0]);
             ThorsLogAndThrowError(std::runtime_error, "ThorsChalice", "main", "Config specifies no servers to run");
         }
 

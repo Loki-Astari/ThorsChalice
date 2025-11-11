@@ -102,9 +102,13 @@ ChaliceServer::ChaliceServer(ChaliceConfig const& config, ChaliceServerMode /*mo
                 }
                 case ActionType::Lib:
                 {
+                    NisHttp::Method method = NisHttp::Method::GET;
+                    if (action.method == "POST") {
+                        method = NisHttp::Method::POST;
+                    }
                     ThorsLogDebug("ChaliceServer", "ChaliceServer", "    Lib  Listener: ");
                     std::size_t libIndex = libraries.load(action.rootDir);
-                    servers.back().addPath(NisHttp::Method::GET,
+                    servers.back().addPath(method,
                                            action.path,
                                            [&, libIndex](NisHttp::Request& request, NisHttp::Response& response)
                                            {handleRequestLib(request, response, libIndex);}

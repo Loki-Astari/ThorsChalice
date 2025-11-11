@@ -113,6 +113,7 @@ void DLLib::reload()
         lib = nullptr;
         chaliceHandle = nullptr;
     }
+    ThorsLogDebug("DLLib", "reload", "Reload DLL: ", path);
     std::error_code ec;
     lib = dlopen(FS::canonical(path, ec).c_str(), RTLD_NOW | RTLD_LOCAL);
     if (lib == nullptr) {

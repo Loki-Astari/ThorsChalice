@@ -7,8 +7,9 @@
 struct Environment
 {
     std::string     slackToken;
+    std::string     slackSecret;
     Environment(std::string const& fileName);
 };
-ThorsAnvil_MakeTrait(Environment, slackToken);
+ThorsAnvil_MakeTrait(Environment, slackToken, slackSecret);
 
 #endif

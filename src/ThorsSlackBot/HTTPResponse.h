@@ -1,7 +1,7 @@
 #ifndef THORSANVIL_NISSE_NISSEHTTP_HTTPRESPONSE_H
 #define THORSANVIL_NISSE_NISSEHTTP_HTTPRESPONSE_H
 
-#include "SlackCLIConfig.h"
+#include "ThorsSlackBotConfig.h"
 #include "NisseHTTP/Util.h"
 // NOTE: Should move headers to UTIL
 //       Then this include is not required.

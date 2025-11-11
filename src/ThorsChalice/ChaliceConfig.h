@@ -21,6 +21,7 @@ struct Action
     ActionType                  type;
     std::string                 rootDir;
     std::string                 path;
+    std::string                 method;
     // For File:
     //      rootDir:        The directory on the file system where files will be loaded from.
     //      path:           registered with Nisse to match against input request.
@@ -59,7 +60,7 @@ struct ChaliceConfig
 
 }
 
-ThorsAnvil_MakeTrait(ThorsAnvil::ThorsChalice::Action, type, rootDir, path);
+ThorsAnvil_MakeTrait(ThorsAnvil::ThorsChalice::Action, type, rootDir, path, method);
 ThorsAnvil_MakeTrait(ThorsAnvil::ThorsChalice::PortConfig, port, certPath, actions);
 ThorsAnvil_MakeTrait(ThorsAnvil::ThorsChalice::ChaliceConfig, servers, controlPort, libraryCheckTime);
 

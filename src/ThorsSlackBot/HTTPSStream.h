@@ -1,7 +1,7 @@
 #ifndef THORSANVIL_NISSE_NISSEHTTP_HTTPSSTREAM_H
 #define THORSANVIL_NISSE_NISSEHTTP_HTTPSSTREAM_H
 
-#include "SlackCLIConfig.h"
+#include "ThorsSlackBotConfig.h"
 #include "ThorsSocket/SocketStream.h"
 
 #include <string>

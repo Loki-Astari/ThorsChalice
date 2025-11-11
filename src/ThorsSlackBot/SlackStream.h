@@ -1,7 +1,7 @@
 #ifndef THORSANVIL_SLACK_SLACKSTREAM_H
 #define THORSANVIL_SLACK_SLACKSTREAM_H
 
-#include "SlackCLIConfig.h"
+#include "ThorsSlackBotConfig.h"
 #include "HTTPSStream.h"
 #include "ThorSerialize/Traits.h"
 #include "ThorSerialize/SerUtil.h"

@@ -104,8 +104,9 @@ namespace Ser = ThorsAnvil::Serialize;
 const Environment                   environment("/Users/martinyork/Repo/ThorsChalice/src/ThorsSlackBot/.slackenv");
 ThorsAnvil::Slack::SlackClient      client(environment.slackToken);
 std::string                         botId = client.sendMessage(ThorsAnvil::Slack::AuthTest{}).user_id;
+std::map<std::string, int>          messageCount;
 
-void handle(ThorsAnvil::Nisse::HTTP::Request& request, ThorsAnvil::Nisse::HTTP::Response& response)
+void handleEvent(ThorsAnvil::Nisse::HTTP::Request& request, ThorsAnvil::Nisse::HTTP::Response& response)
 {
     Message    message;
     request.body() >> Ser::jsonImporter(message);
@@ -141,11 +142,32 @@ void handle(ThorsAnvil::Nisse::HTTP::Request& request, ThorsAnvil::Nisse::HTTP::
 
     std::string const& userId = message.event.user;
     if (userId != botId) {
+        ++messageCount[userId];
         std::string const&  channel = message.event.channel;
         std::string         text = "I see: " + message.event.text;
 
         client.sendMessage(ThorsAnvil::Slack::PostMessageData{channel, text}, ThorsAnvil::Nisse::HTTP::Method::POST);
     }
+}
+void handleCommand(ThorsAnvil::Nisse::HTTP::Request& request, ThorsAnvil::Nisse::HTTP::Response& response)
+{
+    std::string const& userId = request.variables()["user_id"];
+    std::string const& channel = request.variables()["channel_id"];
+
+    client.sendMessage(ThorsAnvil::Slack::PostMessageData{channel, "I have seen " + std::to_string(messageCount[userId])}, ThorsAnvil::Nisse::HTTP::Method::POST);
+    response.setStatus(200);
+}
+void handle(ThorsAnvil::Nisse::HTTP::Request& request, ThorsAnvil::Nisse::HTTP::Response& response)
+{
+    if (request.variables()["Command"] == "event") {
+        handleEvent(request, response);
+        return;
+    }
+    if (request.variables()["Command"] == "command/speak") {
+        handleCommand(request, response);
+        return;
+    }
+    response.setStatus(404);
 }
 
 extern "C"

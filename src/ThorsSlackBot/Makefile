@@ -6,3 +6,7 @@ FILE_WARNING_FLAGS			= -Wno-missing-braces -Wno-deprecated-copy-with-user-provid
 LDLIBS_EXTERN_BUILD			= Nisse ThorSerialize
 
 include $(THORSANVIL_ROOT)/build/tools/Makefile
+
+done:
+	echo "Stopping Chalice"
+	curl localhost:8079 2> /dev/null || echo "Done"

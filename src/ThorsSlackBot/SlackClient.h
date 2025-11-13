@@ -36,8 +36,8 @@ class SlackClient
             Nisse::HTTPRequest      post(stream, T::api, method);
 
             post.addHeaders(headers);
-            std::size_t size = Ser::jsonStreanSize(message);
             if constexpr (T::hasBody) {
+                std::size_t size = Ser::jsonStreanSize(message);
                 post.body(size) << Ser::jsonExporter(message, Ser::PrinterConfig{Ser::OutputType::Stream});
             }
             else {

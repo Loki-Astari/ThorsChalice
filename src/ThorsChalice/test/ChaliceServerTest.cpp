@@ -97,7 +97,7 @@ TEST(ChaliceServer, ServiceRunAddServer)
             "controlPort": 8079,
             "servers": [
                 {
-                    "port":     8080,
+                    "port":     8070,
                     "actions": [
                     ]
                 }
@@ -132,7 +132,7 @@ TEST(ChaliceServer, ServiceRunAddServerWithFile)
             "controlPort": 8079,
             "servers": [
                 {
-                    "port":     8080,
+                    "port":     8070,
                     "actions": [
                         {
                             "type":     "File",
@@ -173,7 +173,7 @@ TEST(ChaliceServer, ServiceRunAddServerWithFileValidateWorks)
             "controlPort": 8079,
             "servers": [
                 {
-                    "port":     8080,
+                    "port":     8070,
                     "actions": [
                         {
                             "type":     "File",
@@ -203,7 +203,7 @@ TEST(ChaliceServer, ServiceRunAddServerWithFileValidateWorks)
     {
         // Talk to server.
         std::this_thread::sleep_for(20ms);
-        ThorsAnvil::ThorsSocket::SocketStream socketData({"localhost", 8080});
+        ThorsAnvil::ThorsSocket::SocketStream socketData({"localhost", 8070});
 
         socketData << ThorsAnvil::ThorsSocket::HTTPSend(ThorsAnvil::ThorsSocket::SendType::GET, ThorsAnvil::ThorsSocket::SendVersion::HTTP1_1, "localhost", "/files/page1");
 
@@ -227,7 +227,7 @@ TEST(ChaliceServer, CallALoadedLib)
             "controlPort": 8079,
             "servers": [
                 {
-                    "port":     8080,
+                    "port":     8070,
                     "actions": [
                         {
                             "type":     "Lib",
@@ -257,7 +257,7 @@ TEST(ChaliceServer, CallALoadedLib)
     {
         // Talk to server.
         std::this_thread::sleep_for(20ms);
-        ThorsAnvil::ThorsSocket::SocketStream socketData({"localhost", 8080});
+        ThorsAnvil::ThorsSocket::SocketStream socketData({"localhost", 8070});
 
         socketData << ThorsAnvil::ThorsSocket::HTTPSend(ThorsAnvil::ThorsSocket::SendType::GET, ThorsAnvil::ThorsSocket::SendVersion::HTTP1_1, "localhost", "/page1");
 

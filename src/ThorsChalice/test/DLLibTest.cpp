@@ -69,7 +69,7 @@ TEST(DLLibTest, LoadL3Call)
     std::error_code ec;
     ThorsAnvil::ThorsChalice::DLLib     dlLib1(FS::canonical(FS::path("../L3/release/libL3.dylib"), ec));
     std::stringstream                   input{"GET /Plop/path/twist.gue?p=1&q=12#34 HTTP/1.1\r\n"
-                                               "host: thorsanvil.dev:8080\r\n"
+                                               "host: thorsanvil.dev:8070\r\n"
                                                "content-length: 0\r\n"
                                                "\r\n"
                                               };
@@ -86,7 +86,7 @@ TEST(DLLibTest, LoadL4Call)
     std::error_code ec;
     ThorsAnvil::ThorsChalice::DLLib     dlLib1(FS::canonical(FS::path("../L4/release/libL4.dylib"), ec));
     std::stringstream                   input{"GET /Plop/path/twist.gue?p=1&q=12#34 HTTP/1.1\r\n"
-                                               "host: thorsanvil.dev:8080\r\n"
+                                               "host: thorsanvil.dev:8070\r\n"
                                                "content-length: 0\r\n"
                                                "\r\n"
                                               };
@@ -104,7 +104,7 @@ TEST(DLLibTest, CallCheck)
     std::error_code ec;
     ThorsAnvil::ThorsChalice::DLLib     dlLib1(FS::canonical(FS::path("../L4/release/libL4.dylib"), ec));
     std::stringstream                   input{"GET /Plop/path/twist.gue?p=1&q=12#34 HTTP/1.1\r\n"
-                                               "host: thorsanvil.dev:8080\r\n"
+                                               "host: thorsanvil.dev:8070\r\n"
                                                "content-length: 0\r\n"
                                                "\r\n"
                                               };
@@ -128,7 +128,7 @@ TEST(DLLibTest, CallCheckAfterLibChange)
     std::error_code                     ec;
     ThorsAnvil::ThorsChalice::DLLib     dlLib1(FS::canonical(FS::path("./CallCheckAfterLibChange.dylib"), ec));
     std::stringstream                   input{"GET /Plop/path/twist.gue?p=1&q=12#34 HTTP/1.1\r\n"
-                                               "host: thorsanvil.dev:8080\r\n"
+                                               "host: thorsanvil.dev:8070\r\n"
                                                "content-length: 0\r\n"
                                                "\r\n"
                                               };
@@ -163,7 +163,7 @@ TEST(DLLibTest, CallOnEmpty)
 {
     ThorsAnvil::ThorsChalice::DLLib     dlLib;
     std::stringstream                   input{"GET /Plop/path/twist.gue?p=1&q=12#34 HTTP/1.1\r\n"
-                                               "host: thorsanvil.dev:8080\r\n"
+                                               "host: thorsanvil.dev:8070\r\n"
                                                "content-length: 0\r\n"
                                                "\r\n"
                                               };
@@ -189,7 +189,7 @@ TEST(DLLibTest, Sleep)
 
 
     std::stringstream                   input{"GET /Plop/path/twist.gue?p=1&sleep=3&q=12#34 HTTP/1.1\r\n"
-                                               "host: thorsanvil.dev:8080\r\n"
+                                               "host: thorsanvil.dev:8070\r\n"
                                                "content-length: 0\r\n"
                                                "\r\n"
                                              };

@@ -5,13 +5,17 @@
 #include "NisseHTTP/Response.h"
 #include "ThorSerialize/Traits.h"
 #include "ThorSerialize/JsonThor.h"
+#include "ThorsCrypto/hash.h"
+#include "ThorsCrypto/hmac.h"
 #include "SlackClient.h"
 #include "SlackStream.h"
 #include "Environment.h"
 
+#include <bit>
 #include <cstddef>
 #include <iostream>
 #include <string>
+#include <string_view>
 #include <thread>
 #include <chrono>
 
@@ -106,17 +110,54 @@ ThorsAnvil::Slack::SlackClient      client(environment.slackToken);
 std::string                         botId = client.sendMessage(ThorsAnvil::Slack::AuthTest{}).user_id;
 std::map<std::string, int>          messageCount;
 
+namespace
+{
+    int hexToInt(char c) {return c >= '0' && c <= '9' ? c - '0' : c >= 'A' && c <= 'F' ? c - 'A' + 10 : c >= 'a' && c <= 'f' ? c - 'a' + 10 : 0;}
+}
+
+bool validateRequest(ThorsAnvil::Nisse::HTTP::Request& request)
+{
+    std::string const&  key = environment.slackSecret;
+    std::string const&  sig = request.variables()["x-slack-signature"];
+    std::string const&  timestampStr = request.variables()["x-slack-request-timestamp"];
+    auto                timestamp = std::stoll(timestampStr);
+    auto                versionEnd = std::min(std::size(sig), sig.find('='));
+
+    if (std::abs(std::time(nullptr) - timestamp) > (60 * 5)) {
+        return false;
+    }
+
+    using namespace std::literals::string_literals;
+    using HMac = ThorsAnvil::Crypto::HMacBuilder<ThorsAnvil::Crypto::Sha256>;
+
+    ThorsAnvil::Crypto::Digest<ThorsAnvil::Crypto::Sha256>      digest;
+    {
+        HMac hmac(key, digest);
+        hmac.appendData(std::string_view{std::begin(sig), std::begin(sig) + versionEnd});
+        hmac.appendData(":"s);
+        hmac.appendData(timestampStr);
+        hmac.appendData(":"s);
+
+        std::string_view    body = request.preloadStreamIntoBuffer();
+        hmac.appendData(body);
+    }
+    std::size_t versionNext = versionEnd + (versionEnd == std::size(sig) ? 0 : 1);
+    for (auto val: digest) {
+        if ((versionNext + 2) > std::size(sig)) {
+            return false;
+        }
+        int expected = hexToInt(sig[versionNext + 0]) * 16 + hexToInt(sig[versionNext + 1]);
+        versionNext += 2;
+        if (expected != val) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 void handleEvent(ThorsAnvil::Nisse::HTTP::Request& request, ThorsAnvil::Nisse::HTTP::Response& response)
 {
-    Message    message;
-    request.body() >> Ser::jsonImporter(message);
-
-    std::cout << "Request:      " << request << "\n\n";
-    std::cout << "Verification: " << Ser::jsonExporter(message) << "\n\n";
-
-    using ThorsAnvil::Nisse::HTTP::HeaderResponse;
-    using namespace std::string_literals;
-
     /*
      * TODO:
      * =====
@@ -124,6 +165,17 @@ void handleEvent(ThorsAnvil::Nisse::HTTP::Request& request, ThorsAnvil::Nisse::H
      * and that it is correctly signed.
      * See: https://docs.slack.dev/authentication/verifying-requests-from-slack
      */
+    if (!validateRequest(request)) {
+        response.setStatus(400);
+        return;
+    }
+
+    using ThorsAnvil::Nisse::HTTP::HeaderResponse;
+    using namespace std::string_literals;
+
+
+    Message    message;
+    request.body() >> Ser::jsonImporter(message);
 
     if (message.challenge != "") {
         HeaderResponse  headers;
@@ -137,8 +189,6 @@ void handleEvent(ThorsAnvil::Nisse::HTTP::Request& request, ThorsAnvil::Nisse::H
         response.body(challangeBackSize) << Ser::jsonExporter(challangeBack, Ser::PrinterConfig{Ser::OutputType::Stream});
         return;
     }
-
-    std::cout << "Message: " << Ser::jsonExporter(message) << "\n\n";
 
     std::string const& userId = message.event.user;
     if (userId != botId) {

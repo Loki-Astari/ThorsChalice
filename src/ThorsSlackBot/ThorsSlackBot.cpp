@@ -1,10 +1,15 @@
 #include "Environment.h"
 #include "NisseHTTP/Request.h"
 #include "NisseHTTP/Response.h"
+#include "ThorSerialize/JsonThor.h"
 #include "ThorSerialize/Traits.h"
 #include "ThorsCrypto/hash.h"
 #include "ThorsCrypto/hmac.h"
 #include "SlackClient.h"
+#include "SlackAPI_Auth.h"
+#include "SlackAPI_Chat.h"
+#include "SlackEvent_Message.h"
+#include "SlackEvent_Challenge.h"
 #include <string>
 #include <string_view>
 #include <vector>
@@ -13,95 +18,11 @@
 #include <cmath>
 #include <ctime>
 
-// std::string const SLACK_TOKEN = "<TOKEN>";
-// REST:
-//      https://slack.com/api/METHOD_FAMILY.method.
-//      HTTPS, SSL, and TLS v1.2
-//
-//      GET querystring parameters,
-//      POST parameters presented as application/x-www-form-urlencode
-//
-
-struct ChallengeResponse
-{
-    std::string                 challenge;
-};
-
-struct ElementPart
-{
-    std::string                 type;
-    std::string                 text;
-};
-struct Element
-{
-    std::string                 type;
-    std::vector<ElementPart>    elements;
-};
-struct Block
-{
-    std::string                 type;
-    std::string                 block_id;
-    std::vector<Element>        elements;
-};
-struct Event
-{
-    std::string                 type;
-    std::string                 user;
-    std::string                 ts;
-    std::string                 client_msg_id;
-    std::string                 text;
-    std::string                 team;
-    std::vector<Block>          blocks;
-    std::string                 channel;
-    std::string                 event_ts;
-    std::string                 channel_type;
-};
-struct Enterprise
-{};
-struct Context
-{};
-struct Authorization
-{
-    Enterprise*                 enterprise_id;
-    std::string                 team_id;
-    std::string                 user_id;
-    bool                        is_bot;
-    bool                        is_enterprise_install;
-};
-struct Message
-{
-    std::string                 token;
-    std::string                 challenge;
-    std::string                 url_verification;
-    std::string                 team_id;
-    std::string                 context_team_id;
-    Context*                    context_enterprise_id;
-    std::string                 api_app_id;
-    Event                       event;
-    std::string                 type;
-    std::string                 event_id;
-    std::size_t                 event_time;
-    std::vector<Authorization>  authorizations;
-    bool                        is_ext_shared_channel;
-    std::string                 event_context;
-};
-
-ThorsAnvil_MakeTrait(ChallengeResponse, challenge);
-ThorsAnvil_MakeTrait(ElementPart, type, text);
-ThorsAnvil_MakeTrait(Element, type, elements);
-ThorsAnvil_MakeTrait(Block, type, block_id, elements);
-ThorsAnvil_MakeTrait(Event, type, user, ts, client_msg_id, text, team, blocks, channel, event_ts, channel_type);
-ThorsAnvil_MakeTrait(Enterprise);
-ThorsAnvil_MakeTrait(Context);
-ThorsAnvil_MakeTrait(Authorization, enterprise_id, team_id, user_id, is_bot, is_enterprise_install);
-ThorsAnvil_MakeTrait(Message, token, challenge, url_verification, team_id, context_team_id, context_enterprise_id, api_app_id, event, type, event_id, event_time, authorizations, is_ext_shared_channel, event_context);
-
-
 namespace Ser = ThorsAnvil::Serialize;
 
 const Environment                   environment("/Users/martinyork/Repo/ThorsChalice/src/ThorsSlackBot/.slackenv");
 ThorsAnvil::Slack::SlackClient      client(environment.slackToken);
-std::string                         botId = client.sendMessage(ThorsAnvil::Slack::AuthTest{}).user_id;
+std::string                         botId = client.sendMessage(ThorsAnvil::Slack::API::Auth::Test{}).user_id;
 std::map<std::string, int>          messageCount;
 
 bool validateRequest(ThorsAnvil::Nisse::HTTP::Request& request)
@@ -134,6 +55,32 @@ bool validateRequest(ThorsAnvil::Nisse::HTTP::Request& request)
     return ThorsAnvil::Crypto::hexdigest<ThorsAnvil::Crypto::Sha256>(digest) == std::string_view{std::begin(sig) + versionNext, std::end(sig)};
 }
 
+void handleUrlVerification(ThorsAnvil::Nisse::HTTP::Request& /*request*/, ThorsAnvil::Slack::Event::Challenge::Event const& event, ThorsAnvil::Nisse::HTTP::Response& response)
+{
+    ThorsAnvil::Nisse::HTTP::HeaderResponse  headers;
+    headers.add("Content-Type", "application/json; charset=utf-8");
+
+    ThorsAnvil::Slack::Event::Challenge::Response   reply{event.challenge};
+
+    std::size_t         challangeBackSize = Ser::jsonStreanSize(reply);
+
+    response.addHeaders(headers);
+    response.body(challangeBackSize) << Ser::jsonExporter(reply, Ser::PrinterConfig{Ser::OutputType::Stream});
+    return;
+}
+
+void handleEventCallback(ThorsAnvil::Nisse::HTTP::Request& /*request*/, ThorsAnvil::Slack::Event::Message::Event const& event, ThorsAnvil::Nisse::HTTP::Response& /*response*/)
+{
+    std::string const& userId = event.event.user;
+    if (userId != botId) {
+        ++messageCount[userId];
+        std::string const&  channel = event.event.channel;
+        std::string         text = "I see: " + event.event.text;
+
+        client.sendMessage(ThorsAnvil::Slack::API::Chat::PostMessage{channel, text}, ThorsAnvil::Nisse::HTTP::Method::POST);
+    }
+}
+
 void handleEvent(ThorsAnvil::Nisse::HTTP::Request& request, ThorsAnvil::Nisse::HTTP::Response& response)
 {
     /*
@@ -150,41 +97,34 @@ void handleEvent(ThorsAnvil::Nisse::HTTP::Request& request, ThorsAnvil::Nisse::H
 
     using ThorsAnvil::Nisse::HTTP::HeaderResponse;
     using namespace std::string_literals;
+    //std::cerr << "Recieved: Message\n";
+    //std::cerr << request << "\n";
 
-
-    Message    message;
-    request.body() >> Ser::jsonImporter(message);
-
-    if (message.challenge != "") {
-        HeaderResponse  headers;
-        headers.add("Content-Type", "application/json; charset=utf-8");
-
-        ChallengeResponse   challangeBack{message.challenge};
-
-        std::size_t         challangeBackSize = Ser::jsonStreanSize(challangeBack);
-
-        response.addHeaders(headers);
-        response.body(challangeBackSize) << Ser::jsonExporter(challangeBack, Ser::PrinterConfig{Ser::OutputType::Stream});
+    std::string_view    body = request.preloadStreamIntoBuffer();
+    if (body.find(R"("type":"url_verification")") != std::string_view::npos) {
+        ThorsAnvil::Slack::Event::Challenge::Event   event;
+        request.body() >> ThorsAnvil::Serialize::jsonImporter(event);
+        handleUrlVerification(request, event, response);
         return;
     }
-
-    std::string const& userId = message.event.user;
-    if (userId != botId) {
-        ++messageCount[userId];
-        std::string const&  channel = message.event.channel;
-        std::string         text = "I see: " + message.event.text;
-
-        client.sendMessage(ThorsAnvil::Slack::PostMessageData{channel, text}, ThorsAnvil::Nisse::HTTP::Method::POST);
+    if (body.find(R"("type":"event_callback")") != std::string_view::npos) {
+        ThorsAnvil::Slack::Event::Message::Event    event;
+        request.body() >> ThorsAnvil::Serialize::jsonImporter(event);
+        handleEventCallback(request, event, response);
+        return;
     }
+    response.setStatus(404);
 }
+
 void handleCommand(ThorsAnvil::Nisse::HTTP::Request& request, ThorsAnvil::Nisse::HTTP::Response& response)
 {
     std::string const& userId = request.variables()["user_id"];
     std::string const& channel = request.variables()["channel_id"];
 
-    client.sendMessage(ThorsAnvil::Slack::PostMessageData{channel, "I have seen " + std::to_string(messageCount[userId])}, ThorsAnvil::Nisse::HTTP::Method::POST);
+    client.sendMessage(ThorsAnvil::Slack::API::Chat::PostMessage{channel, "I have seen " + std::to_string(messageCount[userId])}, ThorsAnvil::Nisse::HTTP::Method::POST);
     response.setStatus(200);
 }
+
 void handle(ThorsAnvil::Nisse::HTTP::Request& request, ThorsAnvil::Nisse::HTTP::Response& response)
 {
     if (request.variables()["Command"] == "event") {

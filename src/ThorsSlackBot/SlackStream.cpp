@@ -1,4 +1,6 @@
 #include "SlackStream.h"
+#include "SlackAPI_Auth.h"
+#include "SlackAPI_Chat.h"
 
 #include <utility>
 
@@ -11,5 +13,5 @@ SlackStream::SlackStream()
 
 using namespace std::string_literals;
 
-const std::string PostMessageData::api  = "https://slack.com/api/chat.postMessage"s;
-const std::string AuthTest::api         = "https://slack.com/api/auth.test"s;
+const std::string API::Auth::Test::api         = "https://slack.com/api/auth.test"s;
+const std::string API::Chat::PostMessage::api  = "https://slack.com/api/chat.postMessage"s;

@@ -1,10 +1,12 @@
 #include "ThorsSlackBot.h"
+#include "NisseHTTP/Util.h"
 #include "ThorSerialize/JsonThor.h"
 #include "ThorSerialize/Traits.h"
 #include "ThorsCrypto/hash.h"
 #include "ThorsCrypto/hmac.h"
 #include "SlackAPI_Auth.h"
 #include "SlackAPI_Chat.h"
+#include "WelcomeMessage.h"
 #include <string_view>
 #include <vector>
 #include <algorithm>
@@ -78,15 +80,34 @@ void SlackBot::handleUrlVerification(NisHTTP::Request& /*request*/, ThorsAnvil::
     return;
 }
 
+void SlackBot::sendWelcomeMessage(std::string const& channel, std::string const& user)
+{
+    auto find = welcomeMessages.find(std::make_pair(channel, user));
+    if (find == std::end(welcomeMessages)) {
+        auto result = welcomeMessages.emplace(std::make_pair(channel, user), ThorsAnvil::Slack::WelcomeMessage{channel, user});
+        find = result.first;
+    }
+
+    auto message = find->second.getMessage();
+    std::cerr << "Message: " << ThorsAnvil::Serialize::jsonExporter(message) << "\n=====\n";
+    auto response = client.sendMessage(message);
+    std::cerr << "Response: " << ThorsAnvil::Serialize::jsonExporter(response) << "\n====\n";
+    find->second.timestamp = std::stoi(response.ts);
+}
+
 void SlackBot::handleEventCallback(NisHTTP::Request& /*request*/, ThorsAnvil::Slack::Event::Message::Event const& event, NisHTTP::Response& /*response*/)
 {
     std::string const& userId = event.event.user;
-    if (userId != botId) {
+    if ((userId != "") && (userId != botId)) {
         ++messageCount[userId];
-        std::string const&  channel = event.event.channel;
+        //std::string const&  channel = event.event.channel;
+        std::string channel = "@" + userId;
         std::string         text = "I see: " + event.event.text;
 
-        client.sendMessage(ThorsAnvil::Slack::API::Chat::PostMessage{channel, text}, NisHTTP::Method::POST);
+        client.sendMessage(ThorsAnvil::Slack::API::Chat::PostMessage{.channel = channel, .text = text}, NisHTTP::Method::POST);
+        if (event.event.text == "start") {
+            sendWelcomeMessage(event.event.channel, userId);
+        }
     }
 }
 
@@ -130,6 +151,6 @@ void SlackBot::handleCommand(NisHTTP::Request& request, NisHTTP::Response& respo
     std::string const& userId = request.variables()["user_id"];
     std::string const& channel = request.variables()["channel_id"];
 
-    client.sendMessage(ThorsAnvil::Slack::API::Chat::PostMessage{channel, "I have seen " + std::to_string(messageCount[userId])}, NisHTTP::Method::POST);
+    client.sendMessage(ThorsAnvil::Slack::API::Chat::PostMessage{.channel = channel, .text = "I have seen " + std::to_string(messageCount[userId])}, NisHTTP::Method::POST);
     response.setStatus(200);
 }

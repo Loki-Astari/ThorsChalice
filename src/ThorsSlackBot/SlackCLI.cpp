@@ -15,7 +15,7 @@ int main()
     using ThorsAnvil::Slack::API::Chat::PostMessage;
 
     SlackClient             client(environment.slackToken);
-    PostMessage             data{"C09RU2URYMS", "I hope the tour went well, Mr. Wonka."};
+    PostMessage             data{.channel = "C09RU2URYMS", .text = "I hope the tour went well, Mr. Wonka."};
     PostMessage::Reply      reply = client.sendMessage(data);
 
     std::cout << ThorsAnvil::Serialize::jsonExporter(reply);

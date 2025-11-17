@@ -11,6 +11,18 @@ namespace ThorsAnvil::Slack::API::Auth
 {
 
 // Documentation: https://docs.slack.dev/reference/methods/auth.test/
+// Example Reply:
+//  {
+//      "ok":       true,
+//      "url":      "https:\/\/thorsanvilworkspace.slack.com\/",
+//      "team":     "ThorsAnvil",
+//      "user":     "thorsslackbotone",
+//      "team_id":  "T095XJHH589",
+//      "user_id":  "U09S3D8R00Z",
+//      "bot_id":   "B09RJ4A000K",
+//      "is_enterprise_install":false
+//  }
+
 
 struct TestReply
 {

@@ -61,7 +61,7 @@ struct Event
     std::string                 context_team_id;
     Context*                    context_enterprise_id = nullptr;
     std::string                 api_app_id;
-    EventData                       event;
+    EventData                   event;
     std::string                 type;
     std::string                 event_id;
     std::size_t                 event_time;

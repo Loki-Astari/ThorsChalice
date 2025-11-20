@@ -50,7 +50,7 @@ class WelcomeMessage
             }
             std::string text = checkmark + " *React to this message!*";
 
-            return BlockKit::Section{.text = BlockKit::Element::Text{.type = BlockKit::Element::mrkdwn, .text = text}};
+            return BlockKit::Section{.text = BlockKit::ElText{.type = BlockKit::mrkdwn, .text = text}};
         }
 };
 

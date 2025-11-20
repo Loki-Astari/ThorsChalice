@@ -6,23 +6,10 @@
 #include "ThorSerialize/PrinterConfig.h"
 
 using namespace std::literals::string_literals;
+namespace BK = ThorsAnvil::Slack::BlockKit;
 
 int main()
 {
-    using ThorsAnvil::Slack::BlockKit::Element::TextType;
-    using ThorsAnvil::Slack::BlockKit::Element::mrkdwn;
-    using ThorsAnvil::Slack::BlockKit::Element::plain_text;
-    using ThorsAnvil::Slack::BlockKit::Block;
-    using ThorsAnvil::Slack::BlockKit::Blocks;
-    using ThorsAnvil::Slack::BlockKit::Section;
-    using ThorsAnvil::Slack::BlockKit::Divider;
-    using ThorsAnvil::Slack::BlockKit::Element::Text;
-
-    Block block = Section{.text = Text{.type = mrkdwn, .text = "Hi there this is text"}};
-    std::cerr << ThorsAnvil::Serialize::jsonExporter(block);
-    std::cerr << ThorsAnvil::Serialize::jsonExporter(block, ThorsAnvil::Serialize::PrinterConfig{ThorsAnvil::Serialize::OutputType::Stream}) << "\n";
-    std::cerr << "Size: " << ThorsAnvil::Serialize::jsonStreanSize(block) << "\n";
-
     loguru::g_stderr_verbosity = 9;
     const Environment     environment(".slackenv");
     ThorsLogDebug("main", "main", "SlackCLI ", environment.slackToken);
@@ -31,11 +18,48 @@ int main()
     using ThorsAnvil::Slack::API::Chat::PostMessage;
 
     SlackClient             client(environment.slackToken);
-    PostMessage::Reply      reply1 = client.sendMessage(PostMessage{.channel = "C09RU2URYMS", .text = "I hope the tour went well, Mr. Wonka."});
-    std::cout << ThorsAnvil::Serialize::jsonExporter(reply1);
+#if 0
+    {
+        PostMessage::Reply      reply = client.sendMessage(PostMessage{.channel = "C09RU2URYMS", .text = "I hope the tour went well, Mr. Wonka."});
+        std::cout << ThorsAnvil::Serialize::jsonExporter(reply);
+    }
 
-    PostMessage::Reply      reply2 = client.sendMessage(PostMessage{.channel = "C09RU2URYMS", .blocks = Blocks{Section{.text = Text{.type = mrkdwn, .text = "Stuff to print"}}, Divider{}, Section{.text = Text{.type = plain_text, .text = "Here we go"}}}});
-    std::cout << ThorsAnvil::Serialize::jsonExporter(reply2);
+    {
+        PostMessage::Reply      reply = client.sendMessage(PostMessage{.channel = "C09RU2URYMS", .blocks = BK::Blocks{BK::Section{.text = BK::ElText{.type = BK::mrkdwn, .text = "Stuff to print"}}, BK::Divider{}, BK::Section{.text = BK::ElText{.type = BK::plain_text, .text = "Here we go"}}}});
+        std::cout << ThorsAnvil::Serialize::jsonExporter(reply);
+    }
+
+    {
+        PostMessage::Reply      reply = client.sendMessage(PostMessage{.channel = "C09RU2URYMS", .blocks = BK::Blocks{BK::RichText{.elements = {BK::RichTextSection{.elements = {BK::ElRtText{.text = "Hi there", .style = BK::InfoText{true,true,true,true}}}}}}}});
+        std::cout << ThorsAnvil::Serialize::jsonExporter(reply);
+    }
+
+    {
+        PostMessage::Reply      reply = client.sendMessage(PostMessage{.channel = "C09RU2URYMS", .blocks = BK::Blocks{BK::RichText{.elements = {BK::RichTextList{.style = BK::bullet, .elements = {BK::RichTextSection{.elements = {BK::ElRtText{.text = "Hi there", .style = BK::InfoText{true,true,true,true}}}}}}}}}});
+        std::cout << ThorsAnvil::Serialize::jsonExporter(reply);
+    }
+#endif
+
+    {
+#if 0
+        std::cerr << ThorsAnvil::Serialize::jsonExporter(PostMessage{.channel = "C09RU2URYMS", .blocks = BK::Blocks{BK::RichText{.elements = {BK::RichTextList{.style = BK::ordered, .elements = {BK::RichTextSection{.elements = {BK::ElRtText{.text = "Hi there", .style = BK::InfoText{true,true,true,true}}}}}}}}}}, ThorsAnvil::Serialize::PrinterConfig{ThorsAnvil::Serialize::OutputType::Stream}) << "\n";
+        std::cerr << ThorsAnvil::Serialize::jsonStreanSize(PostMessage{.channel = "C09RU2URYMS", .blocks = BK::Blocks{BK::RichText{.elements = {BK::RichTextList{.style = BK::ordered, .elements = {BK::RichTextSection{.elements = {BK::ElRtText{.text = "Hi there", .style = BK::InfoText{true,true,true,true}}}}}}}}}}) << "\n";
+        std::cerr << ThorsAnvil::Serialize::jsonExporter(BK::Blocks{BK::RichText{.elements = {BK::RichTextList{.style = BK::ordered, .elements = {BK::RichTextSection{.elements = {BK::ElRtText{.text = "Hi there", .style = BK::InfoText{true,true,true,true}}}}}}}}}, ThorsAnvil::Serialize::PrinterConfig{ThorsAnvil::Serialize::OutputType::Stream}) << "\n";
+        std::cerr << ThorsAnvil::Serialize::jsonStreanSize(BK::Blocks{BK::RichText{.elements = {BK::RichTextList{.style = BK::ordered, .elements = {BK::RichTextSection{.elements = {BK::ElRtText{.text = "Hi there", .style = BK::InfoText{true,true,true,true}}}}}}}}}) << "\n";
+        std::cerr << ThorsAnvil::Serialize::jsonExporter(BK::Block{BK::RichText{.elements = {BK::RichTextList{.style = BK::ordered, .elements = {BK::RichTextSection{.elements = {BK::ElRtText{.text = "Hi there", .style = BK::InfoText{true,true,true,true}}}}}}}}}, ThorsAnvil::Serialize::PrinterConfig{ThorsAnvil::Serialize::OutputType::Stream}) << "\n";
+        std::cerr << ThorsAnvil::Serialize::jsonStreanSize(BK::Block{BK::RichText{.elements = {BK::RichTextList{.style = BK::ordered, .elements = {BK::RichTextSection{.elements = {BK::ElRtText{.text = "Hi there", .style = BK::InfoText{true,true,true,true}}}}}}}}}) << "\n";
+        std::cerr << ThorsAnvil::Serialize::jsonExporter(BK::ElRichTextObj{BK::RichTextList{.style = BK::ordered, .elements = {BK::RichTextSection{.elements = {BK::ElRtText{.text = "Hi there", .style = BK::InfoText{true,true,true,true}}}}}}}, ThorsAnvil::Serialize::PrinterConfig{ThorsAnvil::Serialize::OutputType::Stream}) << "\n";
+        std::cerr << ThorsAnvil::Serialize::jsonStreanSize(BK::ElRichTextObj{BK::RichTextList{.style = BK::ordered, .elements = {BK::RichTextSection{.elements = {BK::ElRtText{.text = "Hi there", .style = BK::InfoText{true,true,true,true}}}}}}}) << "\n";
+        std::cerr << ThorsAnvil::Serialize::jsonExporter(BK::ElRichTextObj{BK::RichTextSection{.elements = {BK::ElRtText{.text = "Hi there", .style = BK::InfoText{true,true,true,true}}}}}, ThorsAnvil::Serialize::PrinterConfig{ThorsAnvil::Serialize::OutputType::Stream}) << "\n";
+        std::cerr << ThorsAnvil::Serialize::jsonStreanSize(BK::ElRichTextObj{BK::RichTextSection{.elements = {BK::ElRtText{.text = "Hi there", .style = BK::InfoText{true,true,true,true}}}}}) << "\n";
+        std::cerr << ThorsAnvil::Serialize::jsonExporter(BK::RtElement{BK::ElRtText{.text = "Hi there", .style = BK::InfoText{true,true,true,true}}}, ThorsAnvil::Serialize::PrinterConfig{ThorsAnvil::Serialize::OutputType::Stream}) << "\n";
+        std::cerr << ThorsAnvil::Serialize::jsonStreanSize(BK::RtElement{BK::ElRtText{.text = "Hi there", .style = BK::InfoText{true,true,true,true}}}) << "\n";
+        std::cerr << ThorsAnvil::Serialize::jsonExporter(BK::InfoText{true,true,true,true}, ThorsAnvil::Serialize::PrinterConfig{ThorsAnvil::Serialize::OutputType::Stream}) << "\n";
+        std::cerr << ThorsAnvil::Serialize::jsonStreanSize(BK::InfoText{true,true,true,true}) << "\n";
+#endif
+        PostMessage::Reply      reply = client.sendMessage(PostMessage{.channel = "C09RU2URYMS", .blocks = BK::Blocks{BK::RichText{.elements = {BK::RichTextList{.style = BK::ordered, .elements = {BK::RichTextSection{.elements = {BK::ElRtText{.text = "Hi there", .style = BK::InfoText{true,true,true,true}}}}}}}}}});
+        std::cout << ThorsAnvil::Serialize::jsonExporter(reply);
+    }
 
 
 #if 0

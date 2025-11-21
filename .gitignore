@@ -28,7 +28,9 @@ libtool
 stamp-*
 
 config.h
-ThorsChaliceConfig.h
+src/ThorsChalice/ThorsChaliceConfig.h
+src/ThorsSlackBot/ThorsSlackBotConfig.h
+src/ThorsSlack/ThorsSlackConfig.h
 MockHeaderInclude.h
 
 CallCheckAfterLibChange.dylib

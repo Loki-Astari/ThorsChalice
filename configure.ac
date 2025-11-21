@@ -24,6 +24,6 @@ AX_THOR_CHECK_USE_BOOST([1.70], [], [
 LT_INIT
 
 AX_THOR_FEATURE_HEADER_ONLY_VARIANT([THORSCHALICE])
-AX_THOR_FUNC_TERM_BUILD([THORSCHALICE], [src/ThorsChalice/ThorsChaliceConfig.h:config.h.in src/ThorsChalice/ThorsSlackBotConfig.h:config.h.in src/ThorsChalice/SlackCLIConfig.h:config.h.in])
+AX_THOR_FUNC_TERM_BUILD([THORSCHALICE], [src/ThorsChalice/ThorsChaliceConfig.h:config.h.in src/ThorsSlack/ThorsSlackConfig.h:config.h.in src/ThorsSlackBot/ThorsSlackBotConfig.h:config.h.in ])
 
 AC_OUTPUT

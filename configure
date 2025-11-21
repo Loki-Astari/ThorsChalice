@@ -20920,7 +20920,7 @@ fi
 
 
 
-    ac_config_headers="$ac_config_headers config.h src/ThorsChalice/ThorsChaliceConfig.h:config.h.in"
+    ac_config_headers="$ac_config_headers config.h src/ThorsChalice/ThorsChaliceConfig.h:config.h.in src/ThorsSlack/ThorsSlackConfig.h:config.h.in src/ThorsSlackBot/ThorsSlackBotConfig.h:config.h.in"
 
     ac_config_files="$ac_config_files Makefile.extra Makefile.config:build/autotools/build/Makefile.config.in:Makefile.config.in"
 
@@ -22052,6 +22052,8 @@ do
     "depfiles") CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
     "config.h") CONFIG_HEADERS="$CONFIG_HEADERS config.h" ;;
     "src/ThorsChalice/ThorsChaliceConfig.h") CONFIG_HEADERS="$CONFIG_HEADERS src/ThorsChalice/ThorsChaliceConfig.h:config.h.in" ;;
+    "src/ThorsSlack/ThorsSlackConfig.h") CONFIG_HEADERS="$CONFIG_HEADERS src/ThorsSlack/ThorsSlackConfig.h:config.h.in" ;;
+    "src/ThorsSlackBot/ThorsSlackBotConfig.h") CONFIG_HEADERS="$CONFIG_HEADERS src/ThorsSlackBot/ThorsSlackBotConfig.h:config.h.in" ;;
     "Makefile.extra") CONFIG_FILES="$CONFIG_FILES Makefile.extra" ;;
     "Makefile.config") CONFIG_FILES="$CONFIG_FILES Makefile.config:build/autotools/build/Makefile.config.in:Makefile.config.in" ;;
 

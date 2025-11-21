@@ -1,9 +1,9 @@
 #ifndef THORSANVIL_SLACK_WELCOME_MESSAGE_H
 #define THORSANVIL_SLACK_WELCOME_MESSAGE_H
 
+#include "ThorsSlack/SlackAPI_Chat.h"
 #include <ctime>
 #include <string>
-#include "SlackAPI_Chat.h"
 
 namespace ThorsAnvil::Slack
 {

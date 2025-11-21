@@ -6,9 +6,9 @@
 #include "WelcomeMessage.h"
 #include "NisseHTTP/Request.h"
 #include "NisseHTTP/Response.h"
-#include "SlackClient.h"
-#include "SlackEvent_Message.h"
-#include "SlackEvent_Challenge.h"
+#include "ThorsSlack/SlackClient.h"
+#include "ThorsSlack/SlackEvent_Message.h"
+#include "ThorsSlack/SlackEvent_Challenge.h"
 #include <string>
 #include <map>
 

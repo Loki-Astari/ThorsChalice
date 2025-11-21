@@ -4,8 +4,8 @@
 #include "ThorSerialize/Traits.h"
 #include "ThorsCrypto/hash.h"
 #include "ThorsCrypto/hmac.h"
-#include "SlackAPI_Auth.h"
-#include "SlackAPI_Chat.h"
+#include "ThorsSlack/SlackAPI_Auth.h"
+#include "ThorsSlack/SlackAPI_Chat.h"
 #include "WelcomeMessage.h"
 #include <string_view>
 #include <vector>
